@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { Jumpy } from "../Jumpy/Jumpy";
+import { GameScene } from "../GameScene/GameScene";
 
 var config = {
   type: Phaser.AUTO,
@@ -12,7 +12,7 @@ var config = {
       debug: false
     }
   },
-  scene: Jumpy
+  scene: GameScene
 };
 
 const game = new Phaser.Game(config);

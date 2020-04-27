@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { GameScene } from "../GameScene/GameScene";
 
-var config = {
+var config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 640,
   height: 512,
@@ -9,10 +9,11 @@ var config = {
     default: "arcade",
     arcade: {
       gravity: { y: 300 },
-      debug: false
-    }
+      debug: false,
+    },
   },
-  scene: GameScene
+  scene: GameScene,
+  parent: "phaser",
 };
 
 const game = new Phaser.Game(config);

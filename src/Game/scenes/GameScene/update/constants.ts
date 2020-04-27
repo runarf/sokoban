@@ -4,7 +4,7 @@ import {
   TILE_CENTER_AFTER_MOVE,
 } from "../../../../consts/Tiles";
 
-interface CenterMove {
+export interface Center {
   x: number;
   y: number;
 }
@@ -14,7 +14,7 @@ interface AbsoluteMove {
 }
 export interface Moves {
   absoluteMove: AbsoluteMove;
-  centerMove: CenterMove;
+  centerMove: Center;
   direction: string;
 }
 export const MOVE_LEFT: Moves = {

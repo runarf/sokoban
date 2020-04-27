@@ -4,24 +4,27 @@ import { Moves } from "./constants";
 export let movesCount: number = 0;
 
 export function movePlayer(moves: Moves) {
-  const { player } = elements;
-  const { tweens } = updateUtils;
-  const {
-    player: { anims },
-  } = elements;
-  tweens.add({
-    ...moves.absoluteMove,
-    duration: 500,
-    targets: player,
-    onComplete: () => {
-      stopPlayerAnimation(anims);
-    },
-    onStart: () => {
-      anims.play(moves.direction, true);
-    },
+  return new Promise((resolve) => {
+    const { player } = elements;
+    const { tweens } = updateUtils;
+    const {
+      player: { anims },
+    } = elements;
+    tweens.add({
+      ...moves.absoluteMove,
+      duration: 500,
+      targets: player,
+      onComplete: () => {
+        stopPlayerAnimation(anims);
+        resolve();
+      },
+      onStart: () => {
+        anims.play(moves.direction, true);
+      },
+    });
+    movesCount++;
+    updateMovesCountText();
   });
-  movesCount++;
-  updateMovesCountText();
 }
 const updateMovesCountText = () => {
   const { movesCountText } = elements;

@@ -1,14 +1,15 @@
 import { elements, updateUtils } from "../GameScene";
 import { BoxToTargetColorMap, BoxColors } from "../../../../consts/Tiles";
-import { MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, Moves } from "./constants";
-import { stopPlayerAnimation, movePlayer, movesCount } from "./movePlayer";
 import {
-  hasWallAt,
-  getBoxAt,
-  tryMoveBox,
-  hasTargetAt,
-  BoxData,
-} from "./tryMoveBox";
+  MOVE_LEFT,
+  MOVE_RIGHT,
+  MOVE_UP,
+  MOVE_DOWN,
+  Moves,
+  Center,
+} from "./constants";
+import { stopPlayerAnimation, movePlayer, movesCount } from "./movePlayer";
+import { hasWallAt, getBoxAt, tryMoveBox } from "./tryMoveBox";
 
 export const targetsCoveredByColor = BoxColors.reduce<{
   [boxColor: number]: number;
@@ -47,43 +48,39 @@ function handleArrowPress() {
   }
 }
 
+export const getNewCenter = (
+  sprite: Phaser.GameObjects.Sprite,
+  moves: Moves
+) => {
+  const newCenterX = sprite.x + moves.centerMove.x;
+  const newCenterY = sprite.y + moves.centerMove.y;
+  const newCenter: Center = { x: newCenterX, y: newCenterY };
+
+  return newCenter;
+};
+
 const tweenMove = (moves: Moves) => {
   const { player } = elements;
-  const newPlayerCenterX = player.x + moves.centerMove.x;
-  const newPlayerCenterY = player.y + moves.centerMove.y;
-  if (hasWallAt(newPlayerCenterX, newPlayerCenterY)) {
+  const newPlayerCenter = getNewCenter(player, moves);
+  if (hasWallAt(newPlayerCenter)) {
     return;
   }
-  const boxData = getBoxAt(newPlayerCenterX, newPlayerCenterY);
+  const boxData = getBoxAt(newPlayerCenter);
 
   const moved: boolean = tryMoveBox(boxData, moves);
   if (!moved) {
     return;
   }
   const { scene } = updateUtils;
-  const finished = checkIfFinished(boxData);
-  if (finished) {
-    console.log("you won woho");
-    scene.start("level-finished", {
-      moves: movesCount,
-    });
-  }
-  movePlayer(moves);
-};
 
-const checkIfFinished = (boxData?: BoxData): boolean => {
-  if (boxData) {
-    const { box, color } = boxData;
-    const boxTarget = BoxToTargetColorMap[color];
-    const coveredTarget = hasTargetAt(box.x, box.y, boxTarget);
-    if (coveredTarget) {
-      targetsCoveredByColor[color]++;
-      if (allTargetsCovered()) {
-        return true;
-      }
+  movePlayer(moves).then(() => {
+    if (allTargetsCovered()) {
+      console.log("you won woho");
+      scene.start("level-finished", {
+        moves: movesCount,
+      });
     }
-  }
-  return false;
+  });
 };
 
 const allTargetsCovered = () => {

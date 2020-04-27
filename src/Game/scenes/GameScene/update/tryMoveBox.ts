@@ -1,7 +1,7 @@
 import { elements, updateUtils } from "../GameScene";
 import { Tiles, BoxToTargetColorMap } from "../../../../consts/Tiles";
-import { Moves } from "./constants";
-import { targetsCoveredByColor } from ".";
+import { Moves, Center } from "./constants";
+import { targetsCoveredByColor, getNewCenter } from ".";
 
 export interface BoxData {
   box: Phaser.GameObjects.Sprite;
@@ -11,12 +11,8 @@ export interface BoxData {
 export const tryMoveBox = (boxData: BoxData | undefined, moves: Moves) => {
   if (boxData) {
     const { box } = boxData;
-    const newBoxCenterX = box.x + moves.centerMove.x;
-    const newBoxCenterY = box.y + moves.centerMove.y;
-    if (
-      hasWallAt(newBoxCenterX, newBoxCenterY) ||
-      getBoxAt(newBoxCenterX, newBoxCenterY)
-    ) {
+    const newBoxCenter: Center = getNewCenter(box, moves);
+    if (hasWallAt(newBoxCenter) || getBoxAt(newBoxCenter)) {
       return false;
     }
     moveBox(moves, boxData);
@@ -28,7 +24,7 @@ const moveBox = (moves: Moves, boxData: BoxData) => {
   const { tweens } = updateUtils;
   const { box, color } = boxData;
   const boxTarget = BoxToTargetColorMap[color];
-  const coveredTarget = hasTargetAt(box.x, box.y, boxTarget);
+  const coveredTarget = hasTargetAt({ x: box.x, y: box.y }, boxTarget);
   if (coveredTarget) {
     targetsCoveredByColor[color]--;
   }
@@ -36,10 +32,24 @@ const moveBox = (moves: Moves, boxData: BoxData) => {
     ...moves.absoluteMove,
     duration: 500,
     targets: box,
+    onComplete: () => {
+      checkIfBoxOnTarget(boxData);
+    },
   });
 };
 
-export const hasTargetAt = (x: number, y: number, tileToFind: Tiles) => {
+const checkIfBoxOnTarget = (boxData: BoxData) => {
+  const { box, color } = boxData;
+  const boxTarget = BoxToTargetColorMap[color];
+  const coveredTarget = hasTargetAt({ x: box.x, y: box.y }, boxTarget);
+  if (coveredTarget) {
+    targetsCoveredByColor[color]++;
+  }
+};
+
+export const hasTargetAt = (center: Center, tileToFind: Tiles) => {
+  console.log(center);
+  const { x, y } = center;
   const tile = elements.world.getTileAtWorldXY(x, y);
   if (!tile) {
     return false;
@@ -47,13 +57,14 @@ export const hasTargetAt = (x: number, y: number, tileToFind: Tiles) => {
   return tile.index === tileToFind;
 };
 
-export const getBoxAt = (x: number, y: number) => {
+export const getBoxAt = (center: Center) => {
   const { boxesByColor } = elements;
   const boxesByColorArray: [
     string,
     Phaser.GameObjects.Sprite[]
   ][] = Object.entries(boxesByColor);
 
+  const { x, y } = center;
   for (const [color, boxes] of boxesByColorArray) {
     const box = boxes.find((box) => {
       const rect = box.getBounds();
@@ -67,7 +78,8 @@ export const getBoxAt = (x: number, y: number) => {
   return undefined;
 };
 
-export const hasWallAt = (x: number, y: number) => {
+export const hasWallAt = (newCenter: Center) => {
+  const { x, y } = newCenter;
   const tile = elements.world.getTileAtWorldXY(x, y);
   if (!tile) {
     return false;

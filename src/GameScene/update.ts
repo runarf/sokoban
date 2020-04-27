@@ -1,5 +1,4 @@
-import { assert } from "../utils/assert";
-import { Elements, BoxesByColor } from "./GameScene";
+import { Elements, BoxesByColor, UpdateUtils } from "./GameScene";
 import {
   Tiles,
   BoxToTargetColorMap,
@@ -17,18 +16,19 @@ const targetsCoveredByColor = BoxColors.reduce<{ [boxColor: number]: number }>(
   {}
 );
 
+let movesCount: number = 0;
+
 export const update = ({
   elements,
-  cursors,
-  tweens,
+  updateUtils,
 }: {
   elements: Elements;
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  tweens: Phaser.Tweens.TweenManager;
+  updateUtils: UpdateUtils;
 }) => {
-  assert(cursors);
-
-  move(elements, cursors, tweens);
+  if (updateUtils.tweens.isTweening(elements.player)) {
+    return;
+  }
+  move(elements, updateUtils);
 };
 
 interface CenterMove {
@@ -44,67 +44,80 @@ interface AbsoluteMove {
 interface Moves {
   absoluteMove: AbsoluteMove;
   centerMove: CenterMove;
+  direction: string;
 }
 
-const move = (
-  elements: Elements,
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys,
-  tweens: Phaser.Tweens.TweenManager
-) => {
+const move = (elements: Elements, updateUtils: UpdateUtils) => {
   const {
     player: { anims },
   } = elements;
+  const tweenMove = tweenMoveCurry(elements, updateUtils);
+
+  handleArrowPress(updateUtils.cursors, tweenMove, anims);
+};
+
+const MOVE_LEFT: Moves = {
+  absoluteMove: { x: "-=" + TILE_SIZE },
+  centerMove: { x: -TILE_CENTER, y: TILE_CENTER },
+  direction: "left",
+};
+const MOVE_RIGHT: Moves = {
+  absoluteMove: { x: `+=${TILE_SIZE}` },
+  centerMove: { x: TILE_CENTER_AFTER_MOVE, y: TILE_CENTER },
+  direction: "right",
+};
+const MOVE_UP: Moves = {
+  absoluteMove: { y: "-=" + TILE_SIZE },
+  centerMove: { x: TILE_CENTER, y: -TILE_CENTER },
+  direction: "up",
+};
+const MOVE_DOWN: Moves = {
+  absoluteMove: { y: "+=" + TILE_SIZE },
+  centerMove: { x: TILE_CENTER, y: TILE_CENTER_AFTER_MOVE },
+  direction: "down",
+};
+
+function handleArrowPress(
+  this: any,
+  cursors: Phaser.Types.Input.Keyboard.CursorKeys,
+  tweenMove: (moves: Moves) => void,
+  anims: Phaser.GameObjects.Components.Animation
+) {
   const { JustDown } = Phaser.Input.Keyboard;
   const justLeft = JustDown(cursors.left!);
   const justRight = JustDown(cursors.right!);
   const justUp = JustDown(cursors.up!);
   const justDown = JustDown(cursors.down!);
-
-  const tweenMove = tweenMoveCurry(tweens, elements);
   if (justLeft) {
-    const moves: Moves = {
-      absoluteMove: { x: "-=" + TILE_SIZE },
-      centerMove: { x: -TILE_CENTER, y: TILE_CENTER },
-    };
-    tweenMove(moves, "left");
+    tweenMove(MOVE_LEFT);
   } else if (justRight) {
-    const moves: Moves = {
-      absoluteMove: { x: `+=${TILE_SIZE}` },
-      centerMove: { x: TILE_CENTER_AFTER_MOVE, y: TILE_CENTER },
-    };
-    tweenMove(moves, "right");
+    tweenMove(MOVE_RIGHT);
   } else if (justUp) {
-    const moves: Moves = {
-      absoluteMove: { y: "-=" + TILE_SIZE },
-      centerMove: { x: TILE_CENTER, y: -TILE_CENTER },
-    };
-    tweenMove(moves, "up");
+    tweenMove(MOVE_UP);
   } else if (justDown) {
-    const moves: Moves = {
-      absoluteMove: { y: "+=" + TILE_SIZE },
-      centerMove: { x: TILE_CENTER, y: TILE_CENTER_AFTER_MOVE },
-    };
-    tweenMove(moves, "down");
+    tweenMove(MOVE_DOWN);
   } else if (anims.currentAnim) {
     stopPlayerAnimation(anims);
   }
-};
+}
 
-const tweenMoveCurry = (
-  tweens: Phaser.Tweens.TweenManager,
-  elements: Elements
-) => {
+interface BoxData {
+  box: Phaser.GameObjects.Sprite;
+  color: number;
+}
+
+const tweenMoveCurry = (elements: Elements, updateUtils: UpdateUtils) => {
   const { player, world, boxesByColor } = elements;
-  const { anims } = player;
+  const { tweens, scene } = updateUtils;
+
   const getBoxAt = getBoxAtCurry(boxesByColor);
   const hasWallAt = hasWallAtCurry(world);
   const hasTargetAt = hasTargetAtCurry(world);
-  return (moves: Moves, onStart: string) => {
+
+  return (moves: Moves) => {
     const newPlayerCenterX = player.x + moves.centerMove.x;
     const newPlayerCenterY = player.y + moves.centerMove.y;
-    if (tweens.isTweening(player)) {
-      return;
-    }
+
     if (hasWallAt(newPlayerCenterX, newPlayerCenterY)) {
       return;
     }
@@ -125,33 +138,32 @@ const tweenMoveCurry = (
         changeTargetCoveredCountForColor(color, -1);
       }
 
+      const onCompleteBoxMove = (boxData: BoxData) => {
+        const { box, color } = boxData;
+        const boxTarget = BoxToTargetColorMap[color];
+        const coveredTarget = hasTargetAt(box.x, box.y, boxTarget);
+        if (coveredTarget) {
+          changeTargetCoveredCountForColor(color, 1);
+          if (allTargetsCovered()) {
+            console.log("you won woho");
+            scene.start("level-finished", {
+              moves: movesCount,
+            });
+          }
+        }
+      };
+
       tweens.add({
         ...moves.absoluteMove,
         duration: 500,
         targets: box,
         onComplete: () => {
-          const coveredTarget = hasTargetAt(box.x, box.y, boxTarget);
-          if (coveredTarget) {
-            changeTargetCoveredCountForColor(color, 1);
-            if (allTargetsCovered()) {
-              console.log("you won woho");
-            }
-          }
+          onCompleteBoxMove(boxData);
         },
       });
     }
 
-    tweens.add({
-      ...moves.absoluteMove,
-      duration: 500,
-      targets: player,
-      onComplete: () => {
-        stopPlayerAnimation(anims);
-      },
-      onStart: () => {
-        anims.play(onStart, true);
-      },
-    });
+    movePlayer(elements, tweens, moves);
   };
 };
 
@@ -202,6 +214,10 @@ const hasTargetAtCurry = (world: Phaser.Tilemaps.StaticTilemapLayer) => (
   return tile.index === tileToFind;
 };
 
+const updateMovesCountText = (countText: Phaser.GameObjects.Text) => {
+  countText.text = `Moves: ${movesCount}`;
+};
+
 const stopPlayerAnimation = (
   anims: Phaser.GameObjects.Components.Animation
 ) => {
@@ -220,3 +236,26 @@ const changeTargetCoveredCountForColor = (color: Tiles, change: number) => {
 const allTargetsCovered = () => {
   return Object.values(targetsCoveredByColor).every((count) => count === 1);
 };
+function movePlayer(
+  elements: Elements,
+  tweens: Phaser.Tweens.TweenManager,
+  moves: Moves
+) {
+  const { player } = elements;
+  const {
+    player: { anims },
+  } = elements;
+  tweens.add({
+    ...moves.absoluteMove,
+    duration: 500,
+    targets: player,
+    onComplete: () => {
+      stopPlayerAnimation(anims);
+      movesCount++;
+      updateMovesCountText(elements.movesCountText);
+    },
+    onStart: () => {
+      anims.play(moves.direction, true);
+    },
+  });
+}

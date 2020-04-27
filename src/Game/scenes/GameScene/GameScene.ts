@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { create } from "./create";
 import { assert } from "../../../utils/assert";
-import { move } from "./update/move";
+import { move } from "./update";
 
 export interface BoxesByColor {
   [key: string]: Phaser.GameObjects.Sprite[];
@@ -31,7 +31,7 @@ export let updateUtils: UpdateUtils;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
-    super("Scene");
+    super("game");
   }
   preload = () => {
     const { load } = this;

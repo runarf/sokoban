@@ -1,7 +1,7 @@
 import { elements, updateUtils } from "../GameScene";
 import { Tiles, BoxToTargetColorMap } from "../../../../consts/Tiles";
 import { Moves } from "./constants";
-import { targetsCoveredByColor } from "./move";
+import { targetsCoveredByColor } from ".";
 
 export interface BoxData {
   box: Phaser.GameObjects.Sprite;
@@ -23,17 +23,10 @@ export const tryMoveBox = (boxData: BoxData | undefined, moves: Moves) => {
   }
   return true;
 };
+
 const moveBox = (moves: Moves, boxData: BoxData) => {
   const { tweens } = updateUtils;
   const { box, color } = boxData;
-  const newBoxCenterX = box.x + moves.centerMove.x;
-  const newBoxCenterY = box.y + moves.centerMove.y;
-  if (
-    hasWallAt(newBoxCenterX, newBoxCenterY) ||
-    getBoxAt(newBoxCenterX, newBoxCenterY)
-  ) {
-    return;
-  }
   const boxTarget = BoxToTargetColorMap[color];
   const coveredTarget = hasTargetAt(box.x, box.y, boxTarget);
   if (coveredTarget) {

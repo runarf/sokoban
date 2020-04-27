@@ -1,5 +1,5 @@
 import { elements, updateUtils } from "../GameScene";
-import { BoxToTargetColorMap, BoxColors } from "../../consts/Tiles";
+import { BoxToTargetColorMap, BoxColors } from "../../../../consts/Tiles";
 import { MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, Moves } from "./constants";
 import { stopPlayerAnimation, movePlayer, movesCount } from "./movePlayer";
 import {

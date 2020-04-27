@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { GameScene } from "../GameScene/GameScene";
+import { GameScene } from "./scenes/GameScene/GameScene";
 import LevelFinishedScene from "./scenes/LevelFinishedScene";
 
 var config: Phaser.Types.Core.GameConfig = {

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import { assert } from "../utils/assert";
+import { assert } from "../../../utils/assert";
 import { Elements, BoxesByColor, CreateUtils } from "./GameScene";
-import { Tiles, BoxColors } from "../consts/Tiles";
+import { Tiles, BoxColors } from "../../../consts/Tiles";
 
 export function create(phaserUtils: CreateUtils): Elements {
   const level = [

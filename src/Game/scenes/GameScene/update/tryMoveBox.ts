@@ -1,5 +1,5 @@
 import { elements, updateUtils } from "../GameScene";
-import { Tiles, BoxToTargetColorMap } from "../../consts/Tiles";
+import { Tiles, BoxToTargetColorMap } from "../../../../consts/Tiles";
 import { Moves } from "./constants";
 import { targetsCoveredByColor } from "./move";
 

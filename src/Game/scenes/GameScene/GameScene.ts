@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { create } from "./create";
-import { assert } from "../utils/assert";
+import { assert } from "../../../utils/assert";
 import { move } from "./update/move";
 
 export interface BoxesByColor {

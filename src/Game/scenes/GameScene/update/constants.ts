@@ -2,7 +2,7 @@ import {
   TILE_SIZE,
   TILE_CENTER,
   TILE_CENTER_AFTER_MOVE,
-} from "../../consts/Tiles";
+} from "../../../../consts/Tiles";
 
 interface CenterMove {
   x: number;

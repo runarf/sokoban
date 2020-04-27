@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import { update } from "./update";
 import { create } from "./create";
 import { assert } from "../utils/assert";
+import { move } from "./update/move";
 
 export interface BoxesByColor {
   [key: string]: Phaser.GameObjects.Sprite[];
@@ -26,10 +26,10 @@ export interface UpdateUtils {
   tweens: Phaser.Tweens.TweenManager;
 }
 
-export class GameScene extends Phaser.Scene {
-  cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
-  elements?: Elements;
+export let elements: Elements;
+export let updateUtils: UpdateUtils;
 
+export class GameScene extends Phaser.Scene {
   constructor() {
     super("Scene");
   }
@@ -40,22 +40,21 @@ export class GameScene extends Phaser.Scene {
       startFrame: 0,
     });
 
-    this.cursors = this.input.keyboard.createCursorKeys();
+    const cursors = this.input.keyboard.createCursorKeys();
+    updateUtils = {
+      cursors,
+      scene: this.scene,
+      tweens: this.tweens,
+    };
   };
   create = () => {
     const { make, anims, add } = this;
     const phaserUtils: CreateUtils = { make, anims, add };
 
-    const elements = create(phaserUtils);
-
-    this.elements = elements;
+    elements = create(phaserUtils);
   };
 
   update = () => {
-    const { cursors, tweens, elements, scene } = this;
-    assert(cursors);
-    const updateUtils: UpdateUtils = { cursors, tweens, scene };
-    assert(elements);
-    update({ updateUtils, elements });
+    move();
   };
 }

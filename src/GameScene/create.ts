@@ -1,12 +1,9 @@
 import Phaser from "phaser";
 import { assert } from "../utils/assert";
-import { Elements, BoxesByColor } from "./GameScene";
+import { Elements, BoxesByColor, CreateUtils } from "./GameScene";
 import { Tiles, BoxColors } from "../consts/Tiles";
 
-export function create(
-  make: Phaser.GameObjects.GameObjectCreator,
-  anims: Phaser.Animations.AnimationManager
-): Elements {
+export function create(phaserUtils: CreateUtils): Elements {
   const level = [
     [100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
     [100, 0, 0, 0, 0, 0, 0, 0, 0, 100],
@@ -39,6 +36,7 @@ export function create(
     [100, 0, 0, 0, 0, 0, 0, 0, 0, 100],
     [100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
   ];
+  const { make, add, anims } = phaserUtils;
   const tilemap = make.tilemap({
     data: level,
     tileWidth: 64,
@@ -61,7 +59,8 @@ export function create(
 
   createPlayerAnimations(anims);
 
-  return { player, world, boxesByColor };
+  const movesCountText = add.text(540, 10, "Moves: 0");
+  return { player, world, boxesByColor, movesCountText };
 }
 
 const extractBoxes = (

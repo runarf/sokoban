@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GameScene } from "../GameScene/GameScene";
+import LevelFinishedScene from "./scenes/LevelFinishedScene";
 
 var config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -12,7 +13,7 @@ var config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: GameScene,
+  scene: [GameScene, LevelFinishedScene],
   parent: "phaser",
 };
 

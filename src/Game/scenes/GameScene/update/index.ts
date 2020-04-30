@@ -6,10 +6,11 @@ import {
   MOVE_UP,
   MOVE_DOWN,
   Moves,
-  Center,
+  Center
 } from "./constants";
 import { stopPlayerAnimation, movePlayer, movesCount } from "./movePlayer";
 import { hasWallAt, getBoxAt, tryMoveBox } from "./tryMoveBox";
+import { SCENE_FINISHED_NAME } from "../../LevelFinishedScene";
 
 export const targetsCoveredByColor = BoxColors.reduce<{
   [boxColor: number]: number;
@@ -28,7 +29,7 @@ export const move = () => {
 function handleArrowPress() {
   const { cursors } = updateUtils;
   const {
-    player: { anims },
+    player: { anims }
   } = elements;
   const { JustDown } = Phaser.Input.Keyboard;
   const justLeft = JustDown(cursors.left!);
@@ -76,13 +77,13 @@ const tweenMove = (moves: Moves) => {
   movePlayer(moves).then(() => {
     if (allTargetsCovered()) {
       console.log("you won woho");
-      scene.start("level-finished", {
-        moves: movesCount,
+      scene.start(SCENE_FINISHED_NAME, {
+        moves: movesCount
       });
     }
   });
 };
 
 const allTargetsCovered = () => {
-  return Object.values(targetsCoveredByColor).every((count) => count === 1);
+  return Object.values(targetsCoveredByColor).every(count => count === 1);
 };

@@ -26,25 +26,28 @@ export interface UpdateUtils {
   tweens: Phaser.Tweens.TweenManager;
 }
 
+export const SCENE_GAME_NAME = "game";
+export const SPRITESHEET_TILES_KEY = "tiles";
+
 export let elements: Elements;
 export let updateUtils: UpdateUtils;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
-    super("game");
+    super(SCENE_GAME_NAME);
   }
   preload = () => {
     const { load } = this;
-    load.spritesheet("tiles", "assets/sokoban_tilesheet.png", {
+    load.spritesheet(SPRITESHEET_TILES_KEY, "assets/sokoban_tilesheet.png", {
       frameWidth: 64,
-      startFrame: 0,
+      startFrame: 0
     });
 
     const cursors = this.input.keyboard.createCursorKeys();
     updateUtils = {
       cursors,
       scene: this.scene,
-      tweens: this.tweens,
+      tweens: this.tweens
     };
   };
   create = () => {
